@@ -5,6 +5,7 @@
 import { Inject } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { Logger } from 'winston';
 
 const CACHE_TTL = 60000; // 60 seconds
 
@@ -16,7 +17,7 @@ export function Cacheable(keyPrefix: string) {
   const injectCache = Inject(CACHE_MANAGER);
 
   return function (
-    target: any,
+    target: object,
     propertyKey: string,
     descriptor: PropertyDescriptor,
   ) {
@@ -25,7 +26,10 @@ export function Cacheable(keyPrefix: string) {
 
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (
+      this: { cacheManager: Cache; logger?: Logger },
+      ...args: unknown[]
+    ) {
       const cacheManager: Cache = this.cacheManager;
       const logger = this.logger; // Use existing logger from the class
 
@@ -87,7 +91,7 @@ export function CacheEvict(keyPrefix: string) {
   const injectCache = Inject(CACHE_MANAGER);
 
   return function (
-    target: any,
+    target: object,
     propertyKey: string,
     descriptor: PropertyDescriptor,
   ) {
@@ -96,7 +100,10 @@ export function CacheEvict(keyPrefix: string) {
 
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (
+      this: { cacheManager: Cache; logger?: Logger },
+      ...args: unknown[]
+    ) {
       const cacheManager: Cache = this.cacheManager;
       const logger = this.logger; // Use existing logger from the class
 

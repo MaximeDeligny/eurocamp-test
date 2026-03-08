@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { CacheModule as NestCacheModule } from '@nestjs/cache-manager';
 import { Keyv } from 'keyv';
 import KeyvRedis from '@keyv/redis';
+import { CacheManagerStore } from 'cache-manager';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import KeyvRedis from '@keyv/redis';
         });
 
         return {
-          store: keyv as any,
+          store: keyv as unknown as CacheManagerStore,
         };
       },
     }),

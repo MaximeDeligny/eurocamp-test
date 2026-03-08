@@ -58,8 +58,7 @@ export class HttpClientService {
       return response;
     } catch (error) {
       clearTimeout(timeoutId);
-      const err = error as any;
-      if (err.name === 'AbortError') {
+      if (error instanceof Error && error.name === 'AbortError') {
         const timeoutError: FetchError = new Error(`Request timeout after ${this.timeout}ms`);
         timeoutError.name = 'TimeoutError';
         throw timeoutError;
@@ -191,7 +190,7 @@ export class HttpClientService {
   /**
    * Generic POST request
    */
-  async post<T>(path: string, body: any): Promise<T> {
+  async post<T>(path: string, body: unknown): Promise<T> {
     this.logger.debug('Sending POST request to external API', {
       context: 'HttpClientService',
       operation: 'POST',

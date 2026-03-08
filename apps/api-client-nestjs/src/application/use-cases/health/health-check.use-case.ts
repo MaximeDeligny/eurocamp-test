@@ -52,8 +52,11 @@ export class HealthCheckUseCase {
         error = `HTTP ${response.status}`;
       }
     } catch (err) {
-      const e = err as any;
-      error = e.name === 'AbortError' ? 'Timeout' : e.message;
+      if (err instanceof Error) {
+        error = err.name === 'AbortError' ? 'Timeout' : err.message;
+      } else {
+        error = 'Unknown error';
+      }
       this.logger.warn('Health check failed for Eurocamp API', {
         context: 'HealthCheckUseCase',
         error,
