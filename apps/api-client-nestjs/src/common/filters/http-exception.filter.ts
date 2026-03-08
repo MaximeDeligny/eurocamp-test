@@ -10,6 +10,14 @@ import { Request, Response } from 'express';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 
+interface RequestWithCorrelationId extends Request {
+  correlationId?: string;
+}
+
+interface ErrorWithStatus extends Error {
+  status?: number;
+}
+
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   constructor(
@@ -19,12 +27,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
-    const correlationId = (request as any)['correlationId'];
+    const request = ctx.getRequest<RequestWithCorrelationId>();
+    const correlationId = request.correlationId;
 
     // Determine status code
     let status: number;
-    let message: any;
+    let message: string | object;
 
     if (exception instanceof HttpException) {
       // NestJS HttpException
@@ -32,7 +40,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message = exception.getResponse();
     } else if (exception instanceof Error && 'status' in exception) {
       // Custom Error with status property (from HttpClientService)
-      status = (exception as any).status || HttpStatus.INTERNAL_SERVER_ERROR;
+      const errorWithStatus = exception as ErrorWithStatus;
+      status = errorWithStatus.status || HttpStatus.INTERNAL_SERVER_ERROR;
       message = { message: exception.message };
     } else {
       // Unknown error
